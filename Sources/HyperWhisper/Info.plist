@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleIdentifier</key>
+    <string>com.hyperwhisper.app</string>
+    <key>CFBundleName</key>
+    <string>HyperWhisper</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>15.0</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <key>LSUIElement</key>
+    <true/>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>HyperWhisper needs microphone access to transcribe your voice.</string>
+    <key>NSAccessibilityUsageDescription</key>
+    <string>HyperWhisper needs accessibility access to insert text into other applications.</string>
+    <key>NSAppleEventsUsageDescription</key>
+    <string>HyperWhisper needs to control other applications to paste text directly.</string>
+</dict>
+</plist>

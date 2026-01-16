@@ -1,0 +1,42 @@
+# Build artifacts
+.build/
+*.app
+*.dmg
+HyperWhisper.app/
+HyperWhisper-Installer.dmg
+
+# Xcode
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+DerivedData/
+*.xccheckout
+*.pbxuser
+*.mode1v3
+*.mode2v3
+
+# Swift Package Manager
+.swiftpm/
+Package.resolved
+
+# macOS
+.DS_Store
+*.dSYM.zip
+*.dSYM
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment and secrets (NEVER commit these)
+.env
+.env.local
+*.pem
+*.key
+secrets/
+
+# User data
+*.sqlite
+*.store
