@@ -7,6 +7,7 @@ struct ConfigurationView: View {
     
     @StateObject private var launchManager = LaunchAtLoginManager.shared
     @StateObject private var permissions = PermissionManager.shared
+    @StateObject private var modelDownloader = ModelDownloader()
     
     // Shortcuts Storage
     @AppStorage("toggleRecKey") private var toggleRecKey = "Right" // Default: Right Arrow
@@ -85,6 +86,55 @@ struct ConfigurationView: View {
                                 Button("Authorize") { permissions.requestMicrophone() }
                                     .buttonStyle(.bordered)
                             }
+                        }
+                    }
+                }
+                
+                // MARK: - AI Model
+                GlassCard(padding: HyperSpacing.lg) {
+                    VStack(alignment: .leading, spacing: HyperSpacing.md) {
+                        Text("AI Model")
+                            .font(.hyperUI(.headline, weight: .semibold))
+                        
+                        HStack {
+                            Image(systemName: modelDownloader.isModelAvailable(type: .parakeet) ? "checkmark.circle.fill" : "arrow.down.circle")
+                                .font(.system(size: 20))
+                                .foregroundStyle(modelDownloader.isModelAvailable(type: .parakeet) ? .green : .blue)
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Parakeet TDT 0.6b")
+                                    .font(.hyperUI(.body, weight: .medium))
+                                Text(modelDownloader.isModelAvailable(type: .parakeet) ? "Installed locally" : "~490MB, runs offline")
+                                    .font(.hyperUI(.caption))
+                                    .foregroundStyle(.secondary)
+                            }
+                            
+                            Spacer()
+                            
+                            if modelDownloader.isModelAvailable(type: .parakeet) {
+                                Text("Ready")
+                                    .font(.hyperUI(.caption))
+                                    .foregroundStyle(.green)
+                            } else if modelDownloader.isDownloading {
+                                HStack(spacing: 8) {
+                                    ProgressView(value: modelDownloader.downloadProgress)
+                                        .frame(width: 80)
+                                    Text("\(Int(modelDownloader.downloadProgress * 100))%")
+                                        .font(.hyperUI(.caption))
+                                        .foregroundStyle(.secondary)
+                                }
+                            } else {
+                                Button("Download") {
+                                    Task { await modelDownloader.downloadModel(type: .parakeet) }
+                                }
+                                .buttonStyle(.borderedProminent)
+                            }
+                        }
+                        
+                        if let error = modelDownloader.lastError {
+                            Text(error)
+                                .font(.hyperUI(.caption))
+                                .foregroundStyle(.red)
                         }
                     }
                 }

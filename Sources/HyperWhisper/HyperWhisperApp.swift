@@ -134,18 +134,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         print("DEBUG: App Launching with Bundle ID: \(bundleId)")
         print("DEBUG: Accessibility Trusted: \(AXIsProcessTrusted())")
         
-        // Show onboarding if first launch
-        if !SettingsManager.shared.hasCompletedOnboarding {
-            print("DEBUG: First launch detected, showing onboarding...")
-            // Small delay to let the app fully initialize
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-                self?.openOnboarding(appState: AppState.shared)
-            }
-        } else {
-            // Request Permissions Explicitly for returning users
-            Task {
-                await self.checkPermissions()
-            }
+        // Check permissions on every launch
+        Task {
+            await self.checkPermissions()
         }
     }
     
@@ -227,54 +218,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
     }
     
-    func openDashboardAfterOnboarding() {
-        if let container = AppState.shared.modelContainer {
-            openDashboard(container: container, appState: AppState.shared, tab: .configuration)
-        } else {
-             print("Error: AppState container is missing for Dashboard")
-        }
-    }
-
     func openModes() {
         if let container = AppState.shared.modelContainer {
              openDashboard(container: container, appState: AppState.shared, tab: .modes)
         } else {
              print("Error: AppState container is missing for Modes")
         }
-    }
-
-    func openOnboarding(appState: AppState) {
-        NSApp.activate(ignoringOtherApps: true)
-        
-        // Define window first so we can capture it in closure
-        let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 600, height: 500),
-            styleMask: [.titled, .closable, .fullSizeContentView],
-            backing: .buffered,
-            defer: false
-        )
-        
-        var onboardingView = OnboardingView()
-        onboardingView.onClose = { [weak window, weak self] in
-            window?.close()
-            // Open Dashboard to Settings after onboarding completes
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                // Need to get container - it's stored in the App struct
-                // Use a simple approach: post notification or just open without container first
-                self?.openDashboardAfterOnboarding()
-            }
-        }
-        
-        let hostingView = NSHostingView(rootView: onboardingView.environmentObject(appState))
-        
-        window.title = "Welcome to HyperWhisper"
-        window.center()
-        window.titlebarAppearsTransparent = true
-        window.isMovableByWindowBackground = true
-        window.contentView = hostingView
-        window.level = .floating
-        window.makeKeyAndOrderFront(nil)
-        window.orderFrontRegardless()
     }
 }
 
