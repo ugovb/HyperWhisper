@@ -163,12 +163,22 @@ class AppState: ObservableObject {
     }
     
     private func handleTranscriptionSuccess(text: String) async {
+        // 0. Sanitize Text (Remove Hallucinations)
+        let sanitizedText = sanitizeTranscription(text)
+        
+        // If sanitization resulted in empty text (it was all hallucinations), abort
+        if sanitizedText.isEmpty && !text.isEmpty {
+            print("AppState: Transcription was filtered out as hallucination.")
+            self.audioState.status = .finished
+            return
+        }
+        
         // Update UI state (for History view etc)
-        self.audioState.transcript = text
+        self.audioState.transcript = sanitizedText
         self.audioState.status = .processing
         
         // 1. Get active mode and process through LLM if needed
-        var processedText = text
+        var processedText = sanitizedText
         var activeMode: Mode? = nil
         
         if let modeId = SettingsManager.shared.activeModeId,
@@ -183,7 +193,7 @@ class AppState: ObservableObject {
                 if mode.type != .classic && mode.providerType != .none {
                     do {
                         print("AppState: Processing with LLM (\(mode.providerType.rawValue) / \(mode.modelIdentifier))...")
-                        processedText = try await LLMService.shared.process(text: text, mode: mode)
+                        processedText = try await LLMService.shared.process(text: sanitizedText, mode: mode)
                         print("AppState: LLM processing complete.")
                     } catch {
                         print("AppState: LLM processing failed: \(error). Using raw text.")
@@ -200,7 +210,7 @@ class AppState: ObservableObject {
         NSPasteboard.general.setString(processedText, forType: .string)
         
         // 3. Save to History
-        await saveTranscription(rawText: text, processedText: processedText, mode: activeMode)
+        await saveTranscription(rawText: sanitizedText, processedText: processedText, mode: activeMode)
         
         // 4. Inject into target app
         try? await textInjector.inject(text: processedText)
@@ -208,6 +218,37 @@ class AppState: ObservableObject {
         print("AppState: Transcription complete and processed: \(processedText)")
         
         // Panel already hidden
+    }
+    
+    /// Filters out common hallucinations from Whisper/Parakeet models
+    private func sanitizeTranscription(_ text: String) -> String {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        // Exact matches for common hallucinations
+        let hallucinations = [
+            "Thank you.",
+            "Thanks.",
+            "MBC 2024",
+            "Amara.org",
+            "Subtitles by",
+            "Translated by",
+            "Ubiqus",
+            "Psst",
+            "Pst"
+        ]
+        
+        if hallucinations.contains(where: { trimmed.caseInsensitiveCompare($0) == .orderedSame }) {
+            return ""
+        }
+        
+        // Regex for "Message [Name] on WhatsApp"
+        // Patterns: "Message ... on WhatsApp", "WhatsApp message", etc.
+        let whatsappPattern = #"^Message .*? on WhatsApp$"#
+        if trimmed.range(of: whatsappPattern, options: [.regularExpression, .caseInsensitive]) != nil {
+            return ""
+        }
+        
+        return trimmed
     }
     
     // MARK: - History Management
