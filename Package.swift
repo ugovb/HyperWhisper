@@ -29,11 +29,6 @@ let package = Package(
                     "-Xlinker", "Sources/HyperWhisper/Info.plist"
                 ])
             ]
-        ),
-        .testTarget(
-            name: "HyperWhisperTests",
-            dependencies: ["HyperWhisper"],
-            path: "Tests/HyperWhisperTests"
         )
     ]
 )

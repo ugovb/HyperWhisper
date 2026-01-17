@@ -97,32 +97,33 @@ struct ConfigurationView: View {
                             .font(.hyperUI(.headline, weight: .semibold))
                         
                         HStack {
-                            Image(systemName: modelDownloader.isModelAvailable(type: .parakeet) ? "checkmark.circle.fill" : "arrow.down.circle")
+                            Image(systemName: modelDownloader.isModelReady ? "checkmark.circle.fill" : "arrow.down.circle")
                                 .font(.system(size: 20))
-                                .foregroundStyle(modelDownloader.isModelAvailable(type: .parakeet) ? .green : .blue)
+                                .foregroundStyle(modelDownloader.isModelReady ? .green : .blue)
                             
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("Parakeet TDT 0.6b")
                                     .font(.hyperUI(.body, weight: .medium))
-                                Text(modelDownloader.isModelAvailable(type: .parakeet) ? "Installed locally" : "~490MB, runs offline")
+                                Text(modelDownloader.isModelReady ? "Installed locally" : "~490MB, runs offline")
                                     .font(.hyperUI(.caption))
                                     .foregroundStyle(.secondary)
                             }
                             
                             Spacer()
                             
-                            if modelDownloader.isModelAvailable(type: .parakeet) {
-                                Text("Ready")
-                                    .font(.hyperUI(.caption))
-                                    .foregroundStyle(.green)
-                            } else if modelDownloader.isDownloading {
+                            if modelDownloader.isDownloading {
                                 HStack(spacing: 8) {
                                     ProgressView(value: modelDownloader.downloadProgress)
-                                        .frame(width: 80)
+                                        .frame(width: 100)
                                     Text("\(Int(modelDownloader.downloadProgress * 100))%")
                                         .font(.hyperUI(.caption))
                                         .foregroundStyle(.secondary)
+                                        .frame(width: 35, alignment: .trailing)
                                 }
+                            } else if modelDownloader.isModelReady {
+                                Text("Ready")
+                                    .font(.hyperUI(.caption))
+                                    .foregroundStyle(.green)
                             } else {
                                 Button("Download") {
                                     Task { await modelDownloader.downloadModel(type: .parakeet) }
